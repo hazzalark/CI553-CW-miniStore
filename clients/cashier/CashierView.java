@@ -40,7 +40,7 @@ public class CashierView implements Observer
   /**
    * Construct the view
    * @param rpc   Window in which to construct
-   * @param mf    Factor to deliver order and stock objects
+   * @param mf    Factor to deliver order and stock objects 
    * @param x     x-coordinate of position of window on screen 
    * @param y     y-coordinate of position of window on screen  
    */

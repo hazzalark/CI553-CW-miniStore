@@ -24,7 +24,7 @@ public class CustomerView implements Observer
     public static final String CLEAR  = "Clear";
   }
 
-  private static final int H = 300;       // Height of window pixels
+  private static final int H = 300;       // Height of window pixels 
   private static final int W = 400;       // Width  of window pixels
 
   private final JLabel      pageTitle  = new JLabel();
@@ -33,7 +33,7 @@ public class CustomerView implements Observer
   private final JTextArea   theOutput  = new JTextArea();
   private final JScrollPane theSP      = new JScrollPane();
   private final JButton     theBtCheck = new JButton( Name.CHECK );
-  private final JButton     theBtClear = new JButton( Name.CLEAR );
+  private final JButton     theBtClear = new JButton( Name.CLEAR )
 
   private Picture thePicture = new Picture(80,80);
   private StockReader theStock   = null;
