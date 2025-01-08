@@ -1,6 +1,7 @@
 package clients.cashier;
 
 import catalogue.Basket;
+import utils.SoundPlayer;
 import catalogue.Product;
 import debug.DEBUG;
 import middle.*;

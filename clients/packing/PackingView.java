@@ -1,8 +1,10 @@
 package clients.packing;
 
 import catalogue.Basket;
+import utils.SoundPlayer;
 import middle.MiddleFactory;
 import middle.OrderProcessing;
+import utils.SoundPlayer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,7 +63,9 @@ public class PackingView implements Observer
 
     theBtPack.setBounds( 16, 25+60*0, 80, 40 );   // Check Button
     theBtPack.addActionListener(                   // Call back code
-      e -> cont.doPacked() );
+      e -> { cont.doPacked(); 
+      SoundPlayer.playSound("assets/button.wav"); // HL604
+      });
     cp.add( theBtPack );                          //  Add to canvas
 
     theAction.setBounds( 110, 25 , 270, 20 );       // Message area

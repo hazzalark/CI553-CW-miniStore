@@ -7,7 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Observable;
 import java.util.Observer;
-
+import utils.SoundPlayer; // HL604
+import javax.sound.sampled.*; // HL604
 /**
  * Implements the Customer view.
  */
@@ -64,19 +65,25 @@ public class BackDoorView implements Observer
     
     theBtQuery.setBounds( 16, 25+60*0, 80, 40 );    // Buy button 
     theBtQuery.addActionListener(                   // Call back code
-      e -> cont.doQuery( theInput.getText() ) );
+      e -> { cont.doQuery( theInput.getText() ); 
+    	  SoundPlayer.playSound("assets/button.wav");
+      });
     cp.add( theBtQuery );                           //  Add to canvas
 
     theBtRStock.setBounds( 16, 25+60*1, 80, 40 );   // Check Button
     theBtRStock.addActionListener(                  // Call back code
-      e -> cont.doRStock( theInput.getText(),
-                          theInputNo.getText() ) );
+      e -> { cont.doRStock( theInput.getText(),
+                          theInputNo.getText() );
+      SoundPlayer.playSound("assets/button.wav"); // HL604 Play sound on button click
+      });
     cp.add( theBtRStock );                          //  Add to canvas
 
-    theBtClear.setBounds( 16, 25+60*2, 80, 40 );    // Buy button 
-    theBtClear.addActionListener(                   // Call back code
-      e -> cont.doClear() );
-    cp.add( theBtClear );                           //  Add to canvas
+    theBtClear.setBounds( 16, 25+60*2, 80, 40 );    // Clear button
+    theBtClear.addActionListener(e -> {            // Action listener for button click
+        cont.doClear();                            // Perform the clear action
+        SoundPlayer.playSound("assets/button.wav"); // HL604 Play sound on button click
+    });
+    cp.add(theBtClear);                        //  Add to canvas
 
  
     theAction.setBounds( 110, 25 , 270, 20 );       // Message area
