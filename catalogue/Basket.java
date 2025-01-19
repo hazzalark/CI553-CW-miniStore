@@ -93,4 +93,13 @@ public class Basket extends ArrayList<Product> implements Serializable
     }
     return sb.toString();
   }
+  
+
+  public double getTotalPrice() { // HL604 GetTotalPrice
+	    double total = 0.0;
+	    for (Product product : this) {
+	        total += product.getPrice() * product.getQuantity();
+	    }
+	    return total; // fixed
+	}
 }
