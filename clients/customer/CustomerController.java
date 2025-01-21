@@ -38,5 +38,10 @@ public class CustomerController
   }
 
   
+  
+  public void doAddOrder() {
+	    model.addOrder();
+	}
+  
 }
 

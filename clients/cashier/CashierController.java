@@ -45,4 +45,14 @@ public class CashierController
   {
     model.doBought();
   }
+  
+  
+  public void doRecallOrder(String orderNum) { 
+	    model.recallOrder(orderNum); // HL604 Retrieve and load order
+	}
+  
+  
+  public void doRefund() { // HL604 Refund function
+	    model.doRefund();
+	}
 }

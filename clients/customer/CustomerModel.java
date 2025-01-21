@@ -10,6 +10,7 @@ import middle.StockReader;
 
 import javax.swing.*;
 import java.util.Observable;
+import middle.OrderException;
 
 /**
  * Implements the Model of the customer client
@@ -34,6 +35,7 @@ public class CustomerModel extends Observable
     try                                          // 
     {  
       theStock = mf.makeStockReader();           // Database access
+      theOrder = mf.makeOrderProcessing(); // HL604 Initialize order processing
     } catch ( Exception e )
     {
       DEBUG.error("CustomerModel.constructor\n" +
@@ -104,6 +106,59 @@ public class CustomerModel extends Observable
     thePic = null;                            // No picture
     setChanged(); notifyObservers(theAction);
   }
+  
+  
+  public void doPlaceOrder() {
+	    if (theBasket != null && theBasket.size() > 0) { // HL604 Ensure basket has items
+	        try {
+	            int orderNum = theOrder.newPendingOrder(theBasket); // HL604 Store order as unpaid
+	            setChanged();
+	            notifyObservers("Order placed. Order Number: " + orderNum);
+	            theBasket = makeBasket(); // HL604 Reset basket
+	        } catch (OrderException e) {
+	            setChanged();
+	            notifyObservers(e.getMessage());
+	        }
+	    } else {
+	        setChanged();
+	        notifyObservers("Cannot place empty order.");
+	    }
+	}
+  
+  public void recallOrder(String orderNum) {
+	    try {
+	        Basket recalledBasket = theOrder.getPendingOrder(Integer.parseInt(orderNum)); // HL604 Fetch unpaid order
+	        if (recalledBasket != null) {
+	            theBasket = recalledBasket; // HL604 Load order into current basket
+	            setChanged();
+	            notifyObservers("Order " + orderNum + " loaded.");
+	        } else {
+	            setChanged();
+	            notifyObservers("Order not found.");
+	        }
+	    } catch (OrderException e) {
+	        setChanged();
+	        notifyObservers(e.getMessage());
+	    }
+	}
+  
+  
+  public void addOrder() {
+	    try {
+	        if (theBasket != null && !theBasket.isEmpty()) {
+	            int orderNum = theOrder.newPendingOrder(theBasket); // HL604 Store unpaid order
+	            theBasket = new Basket(); // HL604 Clear basket
+	            setChanged();
+	            notifyObservers("Order placed! Order Number: " + orderNum);
+	        } else {
+	            setChanged();
+	            notifyObservers("Basket is empty. Add items first.");
+	        }
+	    } catch (OrderException e) {
+	        setChanged();
+	        notifyObservers(e.getMessage());
+	    }
+	}
   
   /**
    * Return a picture of the product

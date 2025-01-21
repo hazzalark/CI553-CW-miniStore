@@ -21,10 +21,12 @@ import java.util.*;
  * @author  Mike Smith University of Brighton
  * @version 3.0
  */
- 
+
+
 public class Order implements OrderProcessing
 {
   private enum State {Waiting, BeingPacked, ToBeCollected };
+  private Map<Integer, Basket> pendingOrders = new HashMap<>(); // HL604 Store unpaid orders
   /**
    * Wraps a Basket and it state into a folder
    */
@@ -79,6 +81,11 @@ public class Order implements OrderProcessing
   {
     return theNextNumber++;
   }
+  
+  
+  private int generateUniqueOrderNumber() { // HL604 Generate unique order number
+	    return pendingOrders.size() + 1000; // HL604 Start order numbers from 1000
+	}
 
   /**
    * Add a new order to the order processing system
@@ -94,6 +101,20 @@ public class Order implements OrderProcessing
        DEBUG.trace( "Order: " + asString( bws.getBasket() ) );
     }
   }
+  
+  
+  
+  public int newPendingOrder(Basket basket) throws OrderException { // HL604 Store unpaid order
+	    int orderNum = generateUniqueOrderNumber();
+	    pendingOrders.put(orderNum, basket);
+	    return orderNum;
+	}
+  
+  
+  
+  public Basket getPendingOrder(int orderNum) throws OrderException { // HL604 Retrieve unpaid order
+	    return pendingOrders.getOrDefault(orderNum, null);
+	}
 
   /**
    * Returns an order to pack from the warehouse.
@@ -209,6 +230,8 @@ public class Order implements OrderProcessing
    * @param inState The state to find order numbers in
    * @return A list of order numbers
    */
+  
+
   private List<Integer> orderNums( State inState )
   {
     return folders.stream()

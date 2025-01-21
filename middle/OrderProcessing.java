@@ -4,6 +4,7 @@ import catalogue.Basket;
 
 import java.util.List;
 import java.util.Map;
+import middle.OrderException;
 
 /**
   * Defines the interface for accessing the order processing system.
@@ -33,4 +34,9 @@ public interface OrderProcessing
   // not being used in this version
   public Map<String,List<Integer>> getOrderState() // Display
          throws OrderException;
+  
+  // HL604 - Added methods for recalling orders
+  public int newPendingOrder(Basket basket) throws OrderException; // Stores unpaid orders  
+
+  public Basket getPendingOrder(int orderNum) throws OrderException; // Retrieves unpaid orders  
 }

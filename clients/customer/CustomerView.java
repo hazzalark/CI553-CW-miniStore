@@ -24,7 +24,7 @@ public class CustomerView implements Observer
     public static final String CLEAR  = "Clear";
   }
 
-  private static final int H = 300;       // Height of window pixels 
+  private static final int H = 320;       // Height of window pixels 
   private static final int W = 400;       // Width  of window pixels
 
   private final JLabel      pageTitle  = new JLabel();
@@ -34,6 +34,7 @@ public class CustomerView implements Observer
   private final JScrollPane theSP      = new JScrollPane();
   private final JButton     theBtCheck = new JButton( Name.CHECK );
   private final JButton     theBtClear = new JButton( Name.CLEAR );
+  private final JButton theBtAddOrder = new JButton("Add Order"); // HL604 New button
 
   private Picture thePicture = new Picture(80,80);
   private StockReader theStock   = null;
@@ -96,9 +97,17 @@ public class CustomerView implements Observer
     cp.add( theSP );                                //  Add to canvas
     theSP.getViewport().add( theOutput );           //  In TextArea
 
-    thePicture.setBounds( 16, 25+60*2, 80, 80 );   // Picture area
+    thePicture.setBounds( 16, 200, 80, 80 );   // Picture area
     cp.add( thePicture );                           //  Add to canvas
     thePicture.clear();
+    
+    
+    theBtAddOrder.setBounds( 16, 25+60*2, 80, 40 ); // HL604 Position below Clear button
+    theBtAddOrder.addActionListener(e -> {
+        cont.doAddOrder(); // HL604 Calls add order function
+        SoundPlayer.playSound("assets/button.wav");
+    });
+    cp.add(theBtAddOrder); // HL604 Add button to UI
     
     rootWindow.setVisible( true );                  // Make visible);
     theInput.requestFocus();                        // Focus is here

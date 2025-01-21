@@ -21,8 +21,8 @@ public class CashierView implements Observer
   private static final int W = 400;       
 
   private static final String CHECK  = "Check";
-  private static final String BUY    = "Buy";
-  private static final String BOUGHT = "Bought/Pay";
+  private static final String BUY    = "Add";
+  private static final String BOUGHT = "Clear";
 
   private final JLabel      pageTitle  = new JLabel();
   private final JLabel      theAction  = new JLabel();
@@ -32,6 +32,9 @@ public class CashierView implements Observer
   private final JButton     theBtCheck = new JButton( CHECK );
   private final JButton     theBtBuy   = new JButton( BUY );
   private final JButton     theBtBought= new JButton( BOUGHT );
+  private final JButton 	theBtRefund = new JButton("Refund"); // HL604 Added refund button
+  private final JTextField theRecallInput = new JTextField(); // HL604 Input for order number
+  private final JButton theBtRecall = new JButton("Recall Order"); // HL604 Recall order button
 
   private JLabel totalSalesLabel; // HL604 Added label for total sales display
   
@@ -105,8 +108,25 @@ public class CashierView implements Observer
 
     // HL604 Added total sales label
     totalSalesLabel = new JLabel("Total Sales: £0.00");
-    totalSalesLabel.setBounds(110, 270, 200, 20); 
+    totalSalesLabel.setBounds(110, 285, 200, 20); 
     cp.add(totalSalesLabel);
+    
+    theBtRefund.setBounds(16, 25+60*4, 80, 40); // HL604 Positioned below "Bought"
+    theBtRefund.addActionListener(e -> { 
+        cont.doRefund(); // HL604 Calls refund function
+        SoundPlayer.playSound("assets/button.wav");
+    });
+    cp.add(theBtRefund);
+    
+    theRecallInput.setBounds(110, 260, 100, 30);
+    cp.add(theRecallInput);
+
+    theBtRecall.setBounds(220, 260, 120, 30);
+    theBtRecall.addActionListener(e -> { 
+        cont.doRecallOrder(theRecallInput.getText()); // HL604 Calls recall function
+        SoundPlayer.playSound("assets/button.wav");
+    });
+    cp.add(theBtRecall);
 
     rootWindow.setVisible( true );                  
     theInput.requestFocus();                        
@@ -127,20 +147,20 @@ public class CashierView implements Observer
    * @param arg      Specific args 
    */
   @Override
-  public void update( Observable modelC, Object arg )
-  {
-    CashierModel model  = (CashierModel) modelC;
-    String      message = (String) arg;
-    theAction.setText( message );
-    Basket basket = model.getBasket();
-    if ( basket == null )
-      theOutput.setText( "Customers order" );
-    else
-      theOutput.setText( basket.getDetails() );
+  public void update(Observable modelC, Object arg) {
+	    CashierModel model = (CashierModel) modelC;
+	    String message = (String) arg;
+	    theAction.setText(message);
+	    
+	    Basket basket = model.getBasket();
+	    if (basket == null) {
+	        theOutput.setText("Customers order");
+	    } else {
+	        theOutput.setText(basket.getDetails());
+	    }
 
-    // HL604 Update total sales display
-    totalSalesLabel.setText("Total Sales: £" + String.format("%.2f", model.getSessionTotalSales()));
+	    // HL604 Ensure total sales updates after refund
+	    totalSalesLabel.setText("Total Sales: £" + String.format("%.2f", model.getSessionTotalSales()));
+	}
 
-    theInput.requestFocus();
-  }
 }

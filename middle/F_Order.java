@@ -7,6 +7,9 @@ import remote.RemoteOrder_I;
 import java.rmi.Naming;
 import java.util.List;
 import java.util.Map;
+// HL604 Recall
+import java.util.HashMap;
+import java.util.Map;
 
 // There can only be 1 ResultSet opened per statement
 // so no simultaneous use of the statement object
@@ -23,6 +26,7 @@ public class F_Order implements OrderProcessing
 {
   private RemoteOrder_I aR_Order    = null;
   private String        theOrderURL = null;
+  private Map<Integer, Basket> pendingOrders = new HashMap<>(); // HL604 Store unpaid orders
 
   public F_Order(String url)
   {
@@ -75,6 +79,23 @@ public class F_Order implements OrderProcessing
       throw new OrderException( "Net: " + e.getMessage() );
     }
   }
+  
+  
+  private int generateUniqueOrderNumber() { // HL604 Generate unique order number
+	    return pendingOrders.size() + 1000; // HL604 Start order numbers from 1000
+	}
+  
+  
+  public int newPendingOrder(Basket basket) throws OrderException { // HL604 Store unpaid order
+	    int orderNum = generateUniqueOrderNumber(); // HL604 Generate unique order number
+	    pendingOrders.put(orderNum, basket); // HL604 Save the order
+	    return orderNum; // Return order number for recall
+	}
+  
+  
+  public Basket getPendingOrder(int orderNum) throws OrderException { // HL604 Retrieve unpaid order
+	    return pendingOrders.getOrDefault(orderNum, null); // Fetch order, return null if not found
+	}
 
   /**
    * Returns an order to pick from the warehouse

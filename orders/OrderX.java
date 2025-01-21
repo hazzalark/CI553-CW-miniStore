@@ -43,6 +43,9 @@ public class OrderX implements OrderProcessing
 
   // Orders waiting to be collected by the customer
   private ArrayList<Basket>  theToBeCollectedTray = new ArrayList<Basket>();
+  
+  
+  private Map<Integer, Basket> pendingOrders = new HashMap<>(); // HL604 Store unpaid orders
 
   /**
    * Used to generate debug information
@@ -72,6 +75,11 @@ public class OrderX implements OrderProcessing
   {
     return theNextNumber++;
   }
+  
+  private int generateUniqueOrderNumber() { // HL604 Generate unique order number
+	    return pendingOrders.size() + 1000; // HL604 Start order numbers from 1000
+	}
+
 
   /**
    * Add a new order to the order processing system
@@ -190,5 +198,17 @@ public class OrderX implements OrderProcessing
     }
     return res;
   }
+  
+  
+  public int newPendingOrder(Basket basket) throws OrderException {
+	    int orderNum = generateUniqueOrderNumber(); // HL604 Generate a unique order number
+	    pendingOrders.put(orderNum, basket); // HL604 Store order as unpaid
+	    return orderNum;
+	}
+  
+  public Basket getPendingOrder(int orderNum) throws OrderException {
+	    return pendingOrders.get(orderNum); // HL604 Retrieve unpaid order
+	}
+  
 
 }

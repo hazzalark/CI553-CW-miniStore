@@ -16,6 +16,7 @@ public class CashierModel extends Observable
 
   private State       theState   = State.process;   // Current state
   private Product     theProduct = null;            // Current product
+  private Basket lastPurchasedOrder = null; // HL604 Stores the last completed order
   private Basket      theBasket  = null;            // Bought items
 
   private String      pn = "";                      // Product being processed
@@ -51,66 +52,114 @@ public class CashierModel extends Observable
     return theBasket;
   }
 
+  /**
+   * Buy the product
+   */
+  public void doBuy() {
+	    String theAction = "";
+	    try {
+	        if (theState != State.checked) {
+	            theAction = "Please check availability first.";
+	        } else {
+	            boolean stockBought = theStock.buyStock(theProduct.getProductNum(), theProduct.getQuantity());
+	            if (stockBought) {
+	                makeBasketIfReq();
+	                sessionTotalSales += theProduct.getPrice() * theProduct.getQuantity(); // HL604 Update total sales
+	                theBasket.add(theProduct);
+	               
+	                
+	                theAction = "Purchased " + theProduct.getDescription();
+	            } else {
+	                theAction = "Not enough stock available!";
+	            }
+	        }
+	    } catch (StockException e) {
+	        theAction = e.getMessage();
+	    }
 
-  public void doBuy()
-  {
-    String theAction = "";
-    int    amount  = 1;                         
-    try
-    {
-      if ( theState != State.checked )          
-      {                                         
-        theAction = "please check its availablity";
-      } else {
-        boolean stockBought =                   // Buy
-          theStock.buyStock(                    // however
-            theProduct.getProductNum(),         // may fail
-            theProduct.getQuantity() );         
-        if ( stockBought )                      
-        {                                       
-          makeBasketIfReq();                    // new basket
-          theBasket.add( theProduct );          // add to bought
-          sessionTotalSales += theProduct.getPrice() * theProduct.getQuantity(); // HL604 Update total sales
-          theAction = "Purchased " +            
-                  theProduct.getDescription();  
-        } else {                                
-          theAction = "!!! Not in stock";       
-        }
-      }
-    } catch( StockException e )
-    {
-      DEBUG.error( "%s\n%s", 
-            "CashierModel.doBuy", e.getMessage() );
-      theAction = e.getMessage();
-    }
-    theState = State.process;                   
-    setChanged(); notifyObservers(theAction);
-  }
+	    setChanged();
+	    notifyObservers(theAction);
+	}
   
-  public void doBought()
-  {
-    String theAction = "";
-    try
-    {
-      if ( theBasket != null &&
-           theBasket.size() >= 1 )            
-      {                                       
-        //sessionTotalSales += theBasket.getTotalPrice(); // HL604 Update total sales ** fixed issue.
-        theOrder.newOrder( theBasket );       
-        theBasket = null;                     
-      }                                       
-      theAction = "Start New Order";            
-      theState = State.process;               
-      theBasket = null;
-    } catch( OrderException e )
-    {
-      DEBUG.error( "%s\n%s", 
-            "CashierModel.doCancel", e.getMessage() );
-      theAction = e.getMessage();
-    }
-    theBasket = null;
-    setChanged(); notifyObservers(theAction); 
-  }
+  
+  public void doRefund() { // HL604 Refund last completed order
+	    String theAction = "";
+
+	    if (lastPurchasedOrder != null && lastPurchasedOrder.size() > 0) { // HL604 Check if there is an order to refund
+	        try {
+	            for (Product product : lastPurchasedOrder) { // HL604 Loop through all products in last order
+	                theStock.addStock(product.getProductNum(), product.getQuantity()); // HL604 Return each product to stock
+	            }
+	            
+	            sessionTotalSales -= lastPurchasedOrder.getTotalPrice(); // HL604 Deduct entire order from total sales
+	            lastPurchasedOrder = null; // HL604 Clear last order
+	            
+	            theAction = "Last order refunded successfully!";
+	        } catch (StockException e) {
+	            theAction = e.getMessage();
+	        }
+	    } else {
+	        theAction = "No completed order to refund!";
+	    }
+
+	    setChanged();
+	    notifyObservers(theAction);
+	}
+
+  
+  public void doBought() {
+	    String theAction = "";
+	    try {
+	        if (theBasket != null && theBasket.size() >= 1) { // Ensure there is an order to process
+	            theOrder.newOrder(theBasket); // Process order
+	            
+	            lastPurchasedOrder = theBasket; // HL604 Save the last completed order
+	            
+	            theBasket = null; // Reset basket for next order
+	        }
+	        theAction = "Start New Order";
+	    } catch (OrderException e) {
+	        theAction = e.getMessage();
+	    }
+
+	    setChanged();
+	    notifyObservers(theAction);
+	}
+  
+  
+  
+  public void recallOrder(String orderNum) {
+	    if (orderNum == null || orderNum.trim().isEmpty()) { // HL604 Validate input
+	        setChanged();
+	        notifyObservers("Please enter a valid order number.");
+	        return;
+	    }
+
+	    try {
+	        int orderID = Integer.parseInt(orderNum.trim()); // HL604 Parse order number safely
+	        Basket recalledBasket = theOrder.getPendingOrder(orderID); // HL604 Fetch unpaid order
+	        if (recalledBasket != null) {
+	            theBasket = recalledBasket; // HL604 Load order into current basket
+	            
+	            // HL604 Correctly update total sales by iterating over all products
+	            for (Product product : theBasket) {
+	                sessionTotalSales += product.getPrice() * product.getQuantity();
+	            }
+
+	            setChanged();
+	            notifyObservers("Order " + orderNum + " loaded.");
+	        } else {
+	            setChanged();
+	            notifyObservers("Order not found.");
+	        }
+	    } catch (NumberFormatException e) {
+	        setChanged();
+	        notifyObservers("Invalid order number. Please enter a number.");
+	    } catch (OrderException e) {
+	        setChanged();
+	        notifyObservers(e.getMessage());
+	    }
+	}
 
   /**
    * Get total sales for the session
@@ -151,6 +200,10 @@ public class CashierModel extends Observable
 	    setChanged();
 	    notifyObservers(theAction);
 	}
+  
+
+
+
   
   private void makeBasketIfReq() {
 	    if (theBasket == null) {
